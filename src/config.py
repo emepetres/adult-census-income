@@ -1,8 +1,8 @@
-COMPETITION = "cat-in-the-dat-ii"
+OWNER = "uciml"
+DATASET = "adult-census-income"
 
 DATA_INPUT = "../input/"
-TRAINING_DATA = DATA_INPUT + "train.csv"
-TEST_DATA = DATA_INPUT + "test.csv"
+DATA = DATA_INPUT + "adult.csv"
 
 MODEL_OUTPUT = "../models/"
 
