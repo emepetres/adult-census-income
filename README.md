@@ -8,6 +8,8 @@ NOTES:
 ## Train
 
 ```bash
+cd src
 conda activate ml
+python create_folds.py
 python -W ignore train.py --model=[lr|rf|svd|xgb]
 ```

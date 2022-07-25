@@ -1,11 +1,15 @@
 import pandas as pd
 from sklearn import model_selection
 
+from common.kaggle import download_dataset
 import config
 
 if __name__ == "__main__":
+    # Download data if necessary
+    download_dataset(config.OWNER, config.DATASET, config.DATA_INPUT)
+
     # Read training data
-    df = pd.read_csv(config.TRAINING_DATA)
+    df = pd.read_csv(config.DATA)
 
     # we create a new column called kfold and fill it with -1
     df["kfold"] = -1
@@ -14,7 +18,7 @@ if __name__ == "__main__":
     df = df.sample(frac=1).reset_index(drop=True)
 
     # fetch labels
-    y = df.target.values
+    y = df.income.values
 
     # initiate the kfold class from model_selection module
     kf = model_selection.StratifiedKFold(n_splits=5)
