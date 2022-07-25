@@ -11,6 +11,13 @@ if __name__ == "__main__":
     # Read training data
     df = pd.read_csv(config.DATA)
 
+    # Drop numerical columns for simplicity
+    df.drop("age", inplace=True, axis=1)
+    df.drop("fnlwgt", inplace=True, axis=1)
+    df.drop("capital.gain", inplace=True, axis=1)
+    df.drop("capital.loss", inplace=True, axis=1)
+    df.drop("hours.per.week", inplace=True, axis=1)
+
     # we create a new column called kfold and fill it with -1
     df["kfold"] = -1
 
