@@ -1,11 +1,9 @@
 # Categorical Feature Encoding Challenge II
 
-Binary classification, with every feature a categorical (and interactions!).
-Second challenge of [cat-in-the-dat](https://www.kaggle.com/competitions/cat-in-the-dat-ii/submit) from kaggle.
+The prediction task is to determine whether a person makes over $50K a year.
+Dataset [adult-census-income](https://www.kaggle.com/datasets/uciml/adult-census-income) from kaggle.
 
 NOTES:
-
-* Logistic Regression works much better than Random Forest, or even XGBoost!
 
 ## Train
 
