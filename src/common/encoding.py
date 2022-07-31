@@ -1,3 +1,4 @@
+import copy
 import pandas as pd
 from typing import List, Tuple
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
@@ -6,7 +7,17 @@ from sklearn.compose import make_column_transformer
 from scipy import sparse
 
 
-def encode_to_onehot(
+def fill_cat_with_none(data: pd.DataFrame, cat_features: List[str]):
+    """
+    fill all NaN values with NONE
+    # note that I am converting all columns to "strings"
+    # it doesn't matter because all are categories
+    """
+    for col in cat_features:
+        data.loc[:, col] = data[col].astype(str).fillna("NONE")
+
+
+def encode_to_onehot(  # one-hot encoding
     df_train: pd.DataFrame, df_valid: pd.DataFrame, features: List[str]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, List[str]]:
     """
@@ -15,6 +26,7 @@ def encode_to_onehot(
     Returns dataframes with features transformed to one-hot features,
     and the new created features
     """
+
     # initialize OneHotEncoder from scikit-learn
     transformer = make_column_transformer(
         (OneHotEncoder(), features), remainder="passthrough"
@@ -39,6 +51,27 @@ def encode_to_onehot(
     return (tdf_train, tdf_valid)
 
 
+def encode_to_values(data: pd.DataFrame, features: List[str]):  # Label Encoding
+    """
+    Encode target labels with value between 0 and n_classes-1.
+    Transforms inline.
+
+    Used only on tree-based algorithms
+    """
+    # fit LabelEncoder on training + validation features
+    # (do this way as it would be with training + testing data)
+
+    for col in features:
+        # initialize LabelEncoder for each feature column
+        lbl = LabelEncoder()
+
+        # fit the label encoder on all data
+        lbl.fit(data[col])
+
+        # transform all the data
+        data.loc[:, col] = lbl.transform(data[col])
+
+
 def reduce_dimensions_svd(
     x_train: sparse.csr_matrix, x_valid: sparse.csr_matrix, n_components: int
 ) -> Tuple[sparse.csr_matrix, sparse.csr_matrix]:
@@ -60,26 +93,22 @@ def reduce_dimensions_svd(
     return (x_train, x_valid)
 
 
-def encode_to_values(
-    df_train: pd.DataFrame, df_valid: pd.DataFrame, features: List[str]
-):
+def mean_target_encoding(
+    data: pd.DataFrame, num_cols: List[str], cat_cols: List[str], folds: int = 5
+) -> pd.DataFrame:
     """
-    Encode target labels with value between 0 and n_classes-1.
-    Transforms inline.
+    Preprocess all data using mean target encoding
 
-    Used only on tree-based algorithms
+    Use before folds separation
     """
-    # fit LabelEncoder on training + validation features
-    # (do this way as it would be with training + testing data)
-    full_data = pd.concat([df_train[features], df_valid[features]], axis=0)
 
-    for col in features:
-        # initialize LabelEncoder for each feature column
-        lbl = LabelEncoder()
+    # make a copy of dataframe
+    df = copy.deepcopy(data)
 
-        # fit the label encoder on all data
-        lbl.fit(full_data[col])
+    # fill all NaN values with NONE
+    # note that I am converting all columns to "strings"
+    # it doesn't matter because all are categories
+    for col in cat_cols:
+        df.loc[:, col] = df[col].astype(str).fillna("NONE")
 
-        # transform all the data
-        df_train.loc[:, col] = lbl.transform(df_train[col])
-        df_valid.loc[:, col] = lbl.transform(df_valid[col])
+    # list

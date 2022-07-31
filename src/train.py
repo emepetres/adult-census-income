@@ -2,14 +2,13 @@ import argparse
 import itertools
 import pandas as pd
 
-from sklearn import metrics
-
 import config
+from common.encoding import fill_cat_with_none
 from model_dispatcher import (
-    DecisionTreeModelSVD,
-    ModelInterface,
+    CustomModel,
     LogisticRegressionModel,
     DecisionTreeModel,
+    DecisionTreeModelSVD,
     XGBoost,
 )
 
@@ -32,7 +31,7 @@ def feature_engineering(df, cat_cols) -> pd.DataFrame:
     return df
 
 
-def run(fold: int, model: ModelInterface):
+def run(fold: int, model: CustomModel):
     # load the full training data with folds
     df = pd.read_csv(config.TRAINING_FILE)
 
@@ -51,37 +50,24 @@ def run(fold: int, model: ModelInterface):
     features = [f for f in df.columns if f not in (config.TARGET, "kfold")]
     cat_features = [col for col in features if col not in ord_features]
 
-    # add new features
+    # # # add new features
     df = feature_engineering(df, cat_features)
     features = [f for f in df.columns if f not in (config.TARGET, "kfold")]
     cat_features = [col for col in features if col not in ord_features]
 
-    # fill all NaN values with NONE
-    # note that I am converting all columns to "strings"
-    # it doesn't matter because all are categories
-    for col in cat_features:
-        df.loc[:, col] = df[col].astype(str).fillna("NONE")
-
-    # get training data using folds
-    df_train = df[df.kfold != fold].reset_index(drop=True)
-
-    # get validation data using folds
-    df_valid = df[df.kfold == fold].reset_index(drop=True)
+    fill_cat_with_none(df, cat_features)
 
     # initialize model
-    lr_model = model(df_train, df_valid, config.TARGET, cat_features, ord_features)
+    custom_model = model(df, fold, config.TARGET, cat_features, ord_features)
 
     # encode all features (they are all categorical)
-    lr_model.encode()
+    custom_model.encode()
 
     # fit model on training data
-    lr_model.fit()
+    custom_model.fit()
 
-    # predict on validation data
-    valid_preds = lr_model.predict()
-
-    # get roc auc score
-    auc = metrics.roc_auc_score(df_valid.income.values, valid_preds)
+    # predict on validation data and get roc auc score
+    auc = custom_model.predict_and_score()
 
     # print auc
     print(f"Fold = {fold}, AUC = {auc}")
