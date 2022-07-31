@@ -3,6 +3,7 @@ DATASET = "adult-census-income"
 
 DATA_INPUT = "../input/"
 DATA = DATA_INPUT + "adult.csv"
+TARGET = "income"
 
 MODEL_OUTPUT = "../models/"
 
