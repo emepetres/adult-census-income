@@ -110,3 +110,18 @@ class XGBoost(DecisionTreeModel):
 
         # fit model on training data
         self.model.fit(self.x_train, self.df_train.loc[:, self.target].values)
+
+
+class XGBoostEncoded(XGBoost):
+    def __init__(self, data: pd.DataFrame, fold: int, target: str, features: List[str]):
+        super().__init__(data, fold, target, [], [])
+
+        self.features = features
+
+    def encode(self):
+        # get training & validation data using folds
+        self.df_train = self.data[self.data.kfold != self.fold].reset_index(drop=True)
+        self.df_valid = self.data[self.data.kfold == self.fold].reset_index(drop=True)
+
+        self.x_train = self.df_train[self.features].values
+        self.x_valid = self.df_valid[self.features].values

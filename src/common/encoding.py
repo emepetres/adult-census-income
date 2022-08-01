@@ -6,6 +6,8 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.compose import make_column_transformer
 from scipy import sparse
 
+import config
+
 
 def fill_cat_with_none(data: pd.DataFrame, cat_features: List[str]):
     """
@@ -105,10 +107,26 @@ def mean_target_encoding(
     # make a copy of dataframe
     df = copy.deepcopy(data)
 
-    # fill all NaN values with NONE
-    # note that I am converting all columns to "strings"
-    # it doesn't matter because all are categories
-    for col in cat_cols:
-        df.loc[:, col] = df[col].astype(str).fillna("NONE")
+    # label encode the features
+    encode_to_values(df, cat_cols)
 
-    # list
+    # a list to store 5 validation dataframes
+    encoded_dfs = []
+
+    # go over all folds
+    for fold_ in range(folds):
+        # fetch training and validation data
+        df_train = df[df.kfold != fold_].reset_index(drop=True)
+        df_valid = df[df.kfold == fold_].reset_index(drop=True)
+        # for all feature columns
+        for column in cat_cols + num_cols:
+            # create dict of category:mean target
+            mapping_dict = dict(df_train.groupby(column)[config.TARGET].mean())
+            # column_enc is the new column we have with mean encoding
+            df_valid.loc[:, column + "_enc"] = df_valid[column].map(mapping_dict)
+        # append to our list of encoded validation dataframes
+        encoded_dfs.append(df_valid)
+
+    # create full data frame again and return
+    encoded_df = pd.concat(encoded_dfs, axis=0)
+    return encoded_df

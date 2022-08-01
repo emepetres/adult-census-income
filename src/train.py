@@ -37,7 +37,7 @@ def run(fold: int, model: CustomModel):
 
     # map targets to 0s and 1s
     target_mapping = {"<=50K": 0, ">50K": 1}
-    df.loc[config.TARGET, :] = df.income.map(target_mapping)
+    df.loc[config.TARGET, :] = df.loc[:, config.TARGET].map(target_mapping)
 
     # FIXME: map introduces a new row filled with nan values¿? #122
     df = df.iloc[:-1]
@@ -60,7 +60,7 @@ def run(fold: int, model: CustomModel):
     # initialize model
     custom_model = model(df, fold, config.TARGET, cat_features, ord_features)
 
-    # encode all features (they are all categorical)
+    # encode all features
     custom_model.encode()
 
     # fit model on training data
