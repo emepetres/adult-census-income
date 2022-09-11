@@ -76,7 +76,7 @@ def run(fold: int, model: CustomModel):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--model", type=str, default="lr")
+    parser.add_argument("--model", type=str, default="xgb")
 
     args = parser.parse_args()
 
